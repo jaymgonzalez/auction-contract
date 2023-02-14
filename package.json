@@ -1,0 +1,7 @@
+{
+  "name": "audit",
+  "version": "1.0.0",
+  "main": "index.js",
+  "author": "Jay M Gonzalez <jaimungon@gmail.com>",
+  "license": "MIT"
+}
