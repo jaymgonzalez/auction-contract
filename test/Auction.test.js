@@ -128,7 +128,7 @@ describe('Auction', function () {
       ).to.be.revertedWith('Not owner allowed')
     })
   })
-  describe.only('Higest bidder, end auction and withdraw', function () {
+  describe('Higest bidder, end auction and withdraw', function () {
     it('Should end the auction', async function () {
       const { auction } = await loadFixture(fixture)
       await auction.initializeAuction([1], [utils.parseEther('2')])
