@@ -44,7 +44,7 @@ contract Auction {
      *@param startingBids An array of starting bids corresponding to the item IDs to initialize.
      *@notice Length of itemIds and startingBids must be the same
      *@notice If the itemId has already been initialized execution will be reverted
-     *@notice Passing a struct instead of 2 separate arrays was more difficult and less gas efficient than spliting an array of objects in the front end with JS. In the case of IDs and starting bids being in the same file.
+     *@notice Passing a struct instead of 2 separate arrays was more difficult and less gas efficient than passing 2 different arrays. Spliting an array of objects in the front end is pretty simple.
      */
     function initializeAuction(
         uint256[] calldata itemIds,
@@ -69,7 +69,7 @@ contract Auction {
      *@param itemId The ID of the item to bid on.
      *@notice Tx will revert if the bid is lower than previous bid or the initial bid.
      *@notice Caller sends the bid value to the contract.
-     *@notice If a bider is overbid, the contract sends back the bid value. This has gas implications that have to been taken into account.
+     *@notice If a bider is overbid, the contract sends back the bid value. This has gas implications to be taken into account.
      */
     function placeBid(uint256 itemId) public payable onlyNonOwner {
         AuctionItems storage item = items[itemId];
