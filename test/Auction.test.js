@@ -71,7 +71,7 @@ describe('Auction', function () {
       ).to.be.revertedWith('Item already exists')
     })
   })
-  describe.only('Place bid', function () {
+  describe('Place bid', function () {
     it('Should place a bid', async function () {
       const { auction, addr1 } = await loadFixture(fixture)
       await auction.initializeAuction([1], [utils.parseEther('2')])
@@ -118,19 +118,78 @@ describe('Auction', function () {
         BigNumber.from(utils.parseEther('5'))
       )
     })
+    it('Should NOT allow the owner to place a bid', async function () {
+      const { auction } = await loadFixture(fixture)
+      await auction.initializeAuction([1], [utils.parseEther('2')])
+      await expect(
+        auction.placeBid(1, {
+          value: utils.parseEther('3'),
+        })
+      ).to.be.revertedWith('Not owner allowed')
+    })
   })
-  // it.only('Should set to true ended property after a week has passed', async function () {
-  //   const { auction, owner } = await loadFixture(fixture)
+  describe.only('Higest bidder, end auction and withdraw', function () {
+    it('Should end the auction', async function () {
+      const { auction } = await loadFixture(fixture)
+      await auction.initializeAuction([1], [utils.parseEther('2')])
+      await auction.endAuction(1)
 
-  //   await auction.initializeAuction([1], [2000])
+      const endedAuction = await auction.items(1)
 
-  //   await time.increase(3600 * 24 * 8)
-  //   console.log(await time.latest())
+      expect(endedAuction.ended).to.equal(true)
+    })
+    it('Should return highest bidder after the auction has ended', async function () {
+      const { auction, addr2 } = await loadFixture(fixture)
+      await auction.initializeAuction([1], [utils.parseEther('2')])
+      await auction.connect(addr2).placeBid(1, {
+        value: utils.parseEther('5'),
+      })
+      await auction.endAuction(1)
 
-  //   const addedItems = await auction.items(1)
+      expect(await auction.highestBidder(1)).to.equal(addr2.address)
+    })
+    it('Should NOT return highest bidder before the auction has ended', async function () {
+      const { auction } = await loadFixture(fixture)
+      await auction.initializeAuction([1], [utils.parseEther('2')])
 
-  //   console.log(addedItems)
+      await expect(auction.highestBidder(1)).to.be.revertedWith(
+        'Auction not ended yet'
+      )
+    })
+    it('Should NOT run end the auction when non initialize', async function () {
+      const { auction } = await loadFixture(fixture)
+      await expect(auction.endAuction(1)).to.be.revertedWith(
+        'Auction not initialized'
+      )
+    })
+    it('Should ONLY end the auction when owner makes the tx', async function () {
+      const { auction, addr1 } = await loadFixture(fixture)
+      await expect(auction.connect(addr1).endAuction(1)).to.be.revertedWith(
+        'Only the owner is allowed'
+      )
+    })
+    it('Should NOT withdraw funds when owner makes the tx', async function () {
+      const { auction, addr1 } = await loadFixture(fixture)
+      await expect(auction.connect(addr1).withdraw()).to.be.revertedWith(
+        'Only the owner is allowed'
+      )
+    })
+    it('Should withdraw funds when owner makes the tx', async function () {
+      const { auction, addr1 } = await loadFixture(fixture)
+      await auction.initializeAuction([1], [utils.parseEther('2')])
+      await auction.connect(addr1).placeBid(1, {
+        value: utils.parseEther('5'),
+      })
 
-  //   expect(addedItems.ended).to.equal(true)
-  // })
+      expect(await auction.provider.getBalance(auction.address)).to.equal(
+        BigNumber.from(utils.parseEther('5'))
+      )
+
+      await auction.withdraw()
+
+      expect(await auction.provider.getBalance(auction.address)).to.equal(
+        BigNumber.from(utils.parseEther('0'))
+      )
+    })
+  })
 })
