@@ -98,7 +98,7 @@ contract Auction {
      *@return The address of the highest bidder for the item.
      */
     function highestBidder(uint256 itemId) public view returns (address) {
-        require(!items[itemId].ended, "Auction not ended yet");
+        require(items[itemId].ended, "Auction not ended yet");
         return items[itemId].highestBidder;
     }
 
